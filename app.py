@@ -1,79 +1,85 @@
 import streamlit as st
 
-st.set_page_config(page_title="NGO Website", layout="wide")
+st.set_page_config(page_title="User Authentication App", layout="centered")
 
-# ---------- Session State ----------
-if "vision" not in st.session_state:
-    st.session_state.vision = "To uplift underprivileged communities."
-
-if "mission" not in st.session_state:
-    st.session_state.mission = "Provide education, healthcare, and support."
-
-if "stats" not in st.session_state:
-    st.session_state.stats = [
-        ("Students Educated", "1000+"),
-        ("Volunteers", "250+"),
-        ("Campaigns", "50+")
-    ]
-
-if "initiatives" not in st.session_state:
-    st.session_state.initiatives = [
-        "Education for All",
-        "Food Distribution",
-        "Health Camps"
-    ]
-
-# ---------- Sidebar ----------
-menu = st.sidebar.selectbox(
-    "Menu",
-    ["Home Page", "Admin Dashboard"]
+# Title
+st.markdown(
+    "<h1 style='text-align:center;'>🔐 User Authentication App</h1>",
+    unsafe_allow_html=True
 )
 
-# ---------- HOME PAGE ----------
-if menu == "Home Page":
-    st.title("NGO Website")
+# Session state
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+    st.session_state.user = ""
 
-  
-    st.header("Vision & Mission")
-    st.write("**Vision:**", st.session_state.vision)
-    st.write("**Mission:**", st.session_state.mission)
+# Simple in-memory user storage
+if "users" not in st.session_state:
+    st.session_state.users = {"Tanushree": "1234"}
 
-    st.header("Our Statistics")
-    cols = st.columns(len(st.session_state.stats))
-    for col, stat in zip(cols, st.session_state.stats):
-        col.metric(stat[0], stat[1])
+# Sidebar menu
+if st.session_state.logged_in:
+    menu = ["Dashboard"]
+else:
+    menu = ["Login", "Signup", "About"]
 
-    st.header("Our Initiatives")
-    for i in st.session_state.initiatives:
-        st.write("•", i)
+choice = st.sidebar.radio("Menu", menu)
 
-    st.write("---")
-    st.write("📧 Contact: ngo@email.com")
+# ---------------- LOGIN ----------------
+if choice == "Login":
+    st.markdown("### Login to your account")
 
-# ---------- ADMIN DASHBOARD ----------
-elif menu == "Admin Dashboard":
-    st.title("Admin Dashboard")
+    username = st.text_input("👤 Username")
+    password = st.text_input("🔑 Password", type="password")
 
-    st.subheader("Update Vision & Mission")
-    vision = st.text_area("Vision", st.session_state.vision)
-    mission = st.text_area("Mission", st.session_state.mission)
+    if st.button("Login"):
+        if username in st.session_state.users and st.session_state.users[username] == password:
+            st.session_state.logged_in = True
+            st.session_state.user = username
+            st.success("✅ Login successful")
+            st.rerun()
+        else:
+            st.error("❌ Invalid username or password")
 
-    if st.button("Save Vision & Mission"):
-        st.session_state.vision = vision
-        st.session_state.mission = mission
-        st.success("Vision & Mission updated")
+# ---------------- SIGNUP ----------------
+elif choice == "Signup":
+    st.markdown("### Create a new account")
 
-    st.subheader("Add Statistics")
-    label = st.text_input("Statistic Label")
-    value = st.text_input("Statistic Value")
+    new_user = st.text_input("👤 New Username")
+    new_pass = st.text_input("🔑 New Password", type="password")
 
-    if st.button("Add Statistic"):
-        st.session_state.stats.append((label, value))
-        st.success("Statistic added")
+    if st.button("Signup"):
+        if new_user == "" or new_pass == "":
+            st.warning("⚠️ Please fill all fields")
+        elif new_user in st.session_state.users:
+            st.error("❌ Username already exists")
+        else:
+            st.session_state.users[new_user] = new_pass
+            st.success("🎉 Account created successfully")
+            st.info("Now go to Login")
 
-    st.subheader("Add Initiative")
-    init = st.text_input("Initiative Name")
+# ---------------- DASHBOARD ----------------
+elif choice == "Dashboard":
+    st.success(f"Welcome, {st.session_state.user} 🌸")
 
-    if st.button("Add Initiative"):
-        st.session_state.initiatives.append(init)
-        st.success("Initiative added")
+    if st.button("Logout"):
+        st.session_state.logged_in = False
+        st.session_state.user = ""
+        st.rerun()
+
+# ---------------- ABOUT ----------------
+elif choice == "About":
+    st.markdown("### 📘 About this project")
+    st.info(
+        """
+        This is a **User Authentication App** built using **Python and Streamlit**.
+
+        Features:
+        - Signup & Login
+        - Dashboard after login
+        - Logout functionality
+        - Clean UI
+
+        This project is suitable for **internship / academic submission**.
+        """
+    )
